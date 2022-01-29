@@ -11,7 +11,6 @@
     let height = window.innerHeight
 
     if (container) {
-      // @ts-ignore
       const graph = ForceGraph(data, {
         nodeId: d => d.id,
         nodeGroup: d => d.group || 'repo',

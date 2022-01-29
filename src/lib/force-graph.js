@@ -9,7 +9,9 @@ export function ForceGraph(
     nodes, // an iterable of node objects (typically [{id}, …])
     links // an iterable of link objects (typically [{source, target}, …])
   },
-  {
+  options = {}
+) {
+  let {
     nodeId = d => d.id, // given d in nodes, returns a unique identifier (string)
     nodeGroup, // given d in nodes, returns an (ordinal) value for color
     nodeGroups, // an array of ordinal values representing the node groups
@@ -31,8 +33,8 @@ export function ForceGraph(
     width = 640, // outer width, in pixels
     height = 400, // outer height, in pixels
     invalidation // when this promise resolves, stop the simulation
-  } = {}
-) {
+  } = options
+
   // Compute values.
   const N = d3.map(nodes, nodeId).map(intern)
   const LS = d3.map(links, linkSource).map(intern)
