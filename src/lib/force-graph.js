@@ -5,6 +5,7 @@
 import * as d3 from 'd3'
 
 export function ForceGraph(
+  svgElement,
   {
     nodes, // an iterable of node objects (typically [{id}, …])
     links // an iterable of link objects (typically [{source, target}, …])
@@ -69,14 +70,14 @@ export function ForceGraph(
     .on('tick', ticked)
 
   const svg = d3
-    .create('svg')
+    .select(svgElement)
     .attr('width', width)
     .attr('height', height)
     .attr('viewBox', [-width / 2, -height / 2, width, height])
     .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
 
   const link = svg
-    .append('g')
+    .select('g')
     .attr('stroke', linkStroke)
     .attr('stroke-opacity', linkStrokeOpacity)
     .attr('stroke-width', typeof linkStrokeWidth !== 'function' ? linkStrokeWidth : null)
@@ -88,7 +89,7 @@ export function ForceGraph(
   if (W) link.attr('stroke-width', ({ index: i }) => W[i])
 
   const node = svg
-    .append('g')
+    .select('g')
     .attr('fill', nodeFill)
     .attr('stroke', nodeStroke)
     .attr('stroke-opacity', nodeStrokeOpacity)
