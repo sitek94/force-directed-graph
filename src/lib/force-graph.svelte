@@ -3,6 +3,7 @@
 
   export let nodes = []
   export let links = []
+  export let nodeRadius
 
   let svg
   let width
@@ -15,7 +16,8 @@
         nodeGroup: d => d.group || 'repo',
         nodeTitle: d => `${d.id} (${d.group})`,
         width,
-        height
+        height,
+        nodeRadius
       })
     }
   }
