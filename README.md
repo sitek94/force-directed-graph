@@ -2,7 +2,7 @@
 
 This project is based on [Force-Directed Graph](https://observablehq.com/@d3/force-directed-graph) by [Mike Bostock](https://github.com/mbostock).
 
-I want to explore this graph and put my own spin on it. 
+I want to explore this graph and put my own spin on it.
 
 ## Scripts
 
