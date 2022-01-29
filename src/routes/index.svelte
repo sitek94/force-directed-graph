@@ -31,7 +31,7 @@
 
     linkStroke,
     linkStrokeOpacity,
-    linkStrokeWidth,
+    linkStrokeWidth
   }
 </script>
 
