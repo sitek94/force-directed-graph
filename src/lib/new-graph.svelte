@@ -3,8 +3,11 @@
   // Released under the ISC license.
   // https://observablehq.com/@d3/disjoint-force-directed-graph
 
+  import miserables from '$lib/miserables.json';
+
   import * as d3 from 'd3'
   import type { ForceLink, Line, SimulationNodeDatum } from 'd3'
+  import { onMount } from 'svelte'
 
   interface Node extends SimulationNodeDatum {
     id: string
@@ -16,11 +19,13 @@
     target: string;
   }
 
+
+
   //
   // PROPS
   //
-  let nodes: Node[] = []
-  let links: Link[] = []
+  let nodes: Node[] = miserables.nodes
+  let links: Link[] = miserables.links
 
   //
   // OPTIONS
@@ -43,8 +48,8 @@
   let linkStrokeLinecap = 'round' // link stroke linecap
   let linkStrength
   let colors = d3.schemeTableau10 // an array of color strings, for the node groups
-  let width = 640 // outer width, in pixels
-  let height = 400 // outer height, in pixels
+  let width = 1000 // outer width, in pixels
+  let height = 700 // outer height, in pixels
   let invalidation // when this promise resolves, stop the simulation
 
   //
@@ -63,7 +68,7 @@
 
   // Replace the input nodes and links with mutable objects for the simulation.
   nodes = nodes.map((_, i) => ({ id: nodesIds[i] }))
-  links = links.map((_, i) => ({ source: linksSources[i], target: linksTargets[i] }))
+  // $: links = links.map((_, i) => ({ source: linksSources[i], target: linksTargets[i] }))
 
   // Compute default domains.
   if (nodesGroups && nodeGroups === undefined) nodeGroups = d3.sort(nodesGroups)
@@ -73,71 +78,81 @@
 
   // Construct the forces.
   const forceNode = d3.forceManyBody()
-  const forceLink = d3.forceLink<Node, Link>(links).id(({ index: i }) => nodesIds[i])
+  // const forceLink = d3.forceLink<Node, Link>(links).id(({ index: i }) => nodesIds[i])
   if (nodeStrength !== undefined) forceNode.strength(nodeStrength)
-  if (linkStrength !== undefined) forceLink.strength(linkStrength)
+  // if (linkStrength !== undefined) forceLink.strength(linkStrength)
 
-  const simulation = d3
-    .forceSimulation<Node>(nodes)
-    .force<Node, Link>('link', forceLink)
-    .force<Node, Link>('charge', forceNode)
-    .force<Node, Link>('x', d3.forceX())
-    .force<Node, Link>('y', d3.forceY())
-    .on<Node, Link>('tick', ticked) // TODO:
+  let svgEl
+  onMount(() => {
+    const svg = d3.select(svgEl)
+      .attr('viewBox', [-width / 2, -height / 2, width, height])
+      .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
+
+    const simulation = d3
+      .forceSimulation<Node>(nodes)
+      // .force<Node, Link>('link', forceLink)
+      .force<Node, Link>('charge', forceNode)
+      .force<Node, Link>('x', d3.forceX())
+      .force<Node, Link>('y', d3.forceY())
+      .on<Node, Link>('tick', ticked) // TODO:
+
+    const node = svg
+      .append('g')
+      .attr('fill', nodeFill)
+      .attr('stroke', nodeStroke)
+      .attr('stroke-opacity', nodeStrokeOpacity)
+      .attr('stroke-width', nodeStrokeWidth)
+      .selectAll<SVGCircleElement, Node>('circle')
+      .data(nodes)
+      .join('circle')
+      .attr('r', nodeRadius)
+    .call(drag(simulation)) // TODO:
 
 
 
-  const svg = d3
-    .create('svg')
-    .attr('width', width)
-    .attr('height', height)
-    .attr('viewBox', [-width / 2, -height / 2, width, height])
-    .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
+    function ticked() {
+      // link
+      //   .attr('x1', d => d.source.x)
+      //   .attr('y1', d => d.source.y)
+      //   .attr('x2', d => d.target.x)
+      //   .attr('y2', d => d.target.y)
 
-  const link = svg
-    .append('g')
-    .attr('stroke', linkStroke)
-    .attr('stroke-opacity', linkStrokeOpacity)
-    .attr('stroke-width', typeof linkStrokeWidth !== 'function' ? linkStrokeWidth : null)
-    .attr('stroke-linecap', linkStrokeLinecap)
-    .selectAll<SVGLineElement, Link>('line')
-    .data(links)
-    .join('line')
+      node.attr('cx', d => d.x).attr('cy', d => d.y)
+    }
+  })
+
+
+
+
+  // const link = svg
+  //   .append('g')
+  //   .attr('stroke', linkStroke)
+  //   .attr('stroke-opacity', linkStrokeOpacity)
+  //   .attr('stroke-width', typeof linkStrokeWidth !== 'function' ? linkStrokeWidth : null)
+  //   .attr('stroke-linecap', linkStrokeLinecap)
+  //   .selectAll<SVGLineElement, Link>('line')
+  //   .data(links)
+  //   .join('line')
 
   // TODO: Not needed?
   // if (strokeWidth) link.attr('stroke-width', ({ index: i }) => strokeWidth[i])
 
-  const node = svg
-    .append('g')
-    .attr('fill', nodeFill)
-    .attr('stroke', nodeStroke)
-    .attr('stroke-opacity', nodeStrokeOpacity)
-    .attr('stroke-width', nodeStrokeWidth)
-    .selectAll<SVGCircleElement, Node>('circle')
-    .data(nodes)
-    .join('circle')
-    .attr('r', nodeRadius)
-  .call(drag(simulation)) // TODO:
 
-  if (nodesGroups) node.attr('fill', ({ index: i }) => color(nodesGroups[i]))
-  if (nodesTitles) node.append('title').text(({ index: i }) => nodesTitles[i])
+
+
+
+
+
+  // if (nodesGroups) node.attr('fill', ({ index: i }) => color(nodesGroups[i]))
+  // if (nodesTitles) node.append('title').text(({ index: i }) => nodesTitles[i])
 
   // Handle invalidation.
   if (invalidation != null) invalidation.then(() => simulation.stop())
 
 
-  function ticked() {
-    link
-      .attr('x1', d => d.source.x)
-      .attr('y1', d => d.source.y)
-      .attr('x2', d => d.target.x)
-      .attr('y2', d => d.target.y)
-
-    node.attr('cx', d => d.x).attr('cy', d => d.y)
-  }
 
 
-    // TODO: drag(simulation)
+
     function drag(simulation) {
       function dragstarted(event) {
         if (!event.active) simulation.alphaTarget(0.3).restart()
@@ -161,3 +176,15 @@
 </script>
 
 <h1>Graph</h1>
+
+<svg bind:this={svgEl} {width} {height}>
+
+</svg>
+
+<style>
+  svg {
+
+    background: #eee;
+  }
+</style>
+
