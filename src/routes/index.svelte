@@ -1,2 +1,6 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+  import miserablesData from '$lib/miserables.json'
+  import ForceGraph from '$lib/force-graph.svelte'
+</script>
+
+<ForceGraph data={miserablesData} />
